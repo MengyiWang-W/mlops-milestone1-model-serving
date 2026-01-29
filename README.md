@@ -39,6 +39,7 @@ curl -X POST https://mlops-model-service-76924655583.us-central1.run.app/predict
 -d '{"features":[1,2,3]}'
 
 The Docker image is stored in Google Artifact Registry, ensuring a reproducible runtime environment.
+Artifact Registry image: us-central1-docker.pkg.dev/project-26ae2bab-32e3-4c7d-bac/mlops-repo/mlops-model:v3
 
 ## Cloud Function Deployment (Serverless)
 The same prediction logic is implemented using Google Cloud Functions.
@@ -58,14 +59,32 @@ The Cloud Function loads the model artifact and returns predictions through an H
 A cold start occurs when no instance is running and the platform must initialize the runtime and load the model. This causes higher latency for the first request. A warm instance already has the model loaded in memory and responds much faster to subsequent requests.
 
 Cloud Functions typically experience more noticeable cold starts than Cloud Run containers due to their stateless nature.
+Cold start and warm request latency were measured using PowerShell `Measure-Command` with identical POST requests.
 
+Cloud Run:
+- Cold start: 238 ms
+- Warm request: 106 ms
+
+Cloud Function:
+- Cold start: 2753 ms
+- Warm request: 2330 ms
+
+Overall, Cloud Run provides stronger reproducibility because the full runtime
+environment (code, dependencies, and model artifact) is captured inside a Docker image, while Cloud Functions rely on platform-managed runtimes that may change over time.
 ## FastAPI Container vs Cloud Function
 The FastAPI container on Cloud Run runs as a long-lived service where the model is loaded once per container lifecycle, resulting in lower latency for warm requests and better control over the environment.
 
 Cloud Functions are fully stateless and reload the model during cold starts, which increases latency but simplifies deployment and scaling.
 
 Cloud Run emphasizes reproducibility and flexibility through Docker images, while Cloud Functions prioritize simplicity and automatic scaling.
+## Monitoring Touchpoints
+In a production system, logging and monitoring would be added at:
+- API request level (request count, latency, errors)
+- Model inference output (prediction distribution drift)
+- Infrastructure level (CPU/memory usage, cold start frequency)
 
+Cloud Run integrates naturally with Google Cloud Logging and Cloud Monitoring,
+while Cloud Functions provide built-in execution metrics and error logs.
 ## Reproducibility
 Reproducibility is ensured through:
 Fixed dependencies in requirements.txt
