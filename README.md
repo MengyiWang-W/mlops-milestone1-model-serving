@@ -3,6 +3,9 @@ This project demonstrates a simple machine learning model serving pipeline using
 
 A lightweight scikit-learn regression model is trained and saved as a serialized artifact (model.pkl). The model is exposed through HTTP endpoints for inference.
 
+## Dependency pinning
+During deployment, dependency compatibility issues were encountered due to Python runtime constraints. This highlights the importance of version pinning and runtime reproducibility in MLOps deployments.
+
 ## Project Workflow
 The workflow follows the machine learning deployment lifecycle:
 Input data → HTTP API → trained model → prediction output.
@@ -39,6 +42,7 @@ The Docker image is stored in Google Artifact Registry, ensuring a reproducible 
 
 ## Cloud Function Deployment (Serverless)
 The same prediction logic is implemented using Google Cloud Functions.
+During deployment, IAM permission adjustments were required for Artifact Registry and logging. This highlights the importance of correct service account permissions in reproducible MLOps deployments.
 
 Example endpoint:
 https://us-central1-project-26ae2bab-32e3-4c7d-bac.cloudfunctions.net/predict
